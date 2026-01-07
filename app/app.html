@@ -8,8 +8,8 @@
         <span class="hamburger-line" [class.active]="mobileMenuOpen"></span>
       </button>
       <nav class="main-nav" [class.mobile-open]="mobileMenuOpen">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" 
-           (click)="closeMobileMenu()">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+          (click)="closeMobileMenu()">
           Esercizi
         </a>
         <a routerLink="/session/new" routerLinkActive="active" (click)="closeMobileMenu()">
