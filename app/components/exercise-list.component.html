@@ -1,0 +1,95 @@
+<div class="exercise-list-container">
+  <div class="header-section">
+    <h1>💪 I Miei Esercizi</h1>
+    <button class="btn-primary" (click)="insertExercise()" *ngIf="!editMode">
+      ➕ Nuovo Esercizio
+    </button>
+  </div>
+
+  @if (editMode) {
+    <div class="exercise-form-card">
+      <h2>{{ exerciseToEdit.id === 0 ? 'Nuovo Esercizio' : 'Modifica Esercizio' }}</h2>
+      <form (ngSubmit)="saveExercise()">
+        <div class="form-group">
+          <label>Nome Esercizio *</label>
+          <input type="text" [(ngModel)]="exerciseToEdit.name" name="name" required 
+                 placeholder="Es. Panca piana" />
+        </div>
+        <div class="form-group">
+          <label>Gruppo Muscolare</label>
+          <input type="text" [(ngModel)]="exerciseToEdit.muscleGroup" name="muscleGroup"
+                 placeholder="Es. Petto, Schiena, Gambe..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Serie</label>
+            <input type="number" [(ngModel)]="exerciseToEdit.sets" name="sets" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Ripetizioni</label>
+            <input type="number" [(ngModel)]="exerciseToEdit.reps" name="reps" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Peso (kg)</label>
+            <input type="number" [(ngModel)]="exerciseToEdit.weightKg" name="weightKg" 
+                   step="0.5" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <textarea [(ngModel)]="exerciseToEdit.notes" name="notes" 
+                    placeholder="Note aggiuntive..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-success">💾 Salva</button>
+          <button type="button" class="btn-secondary" (click)="cancelEdit()">❌ Annulla</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (!editMode) {
+    <div class="exercises-grid">
+      @for (exercise of exercises; track exercise.id) {
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3>{{ exercise.name }}</h3>
+            <span class="muscle-badge">{{ exercise.muscleGroup || 'Generale' }}</span>
+          </div>
+          <div class="exercise-details">
+            <div class="detail-item">
+              <span class="label">Serie:</span>
+              <span class="value">{{ exercise.sets || '-' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Ripetizioni:</span>
+              <span class="value">{{ exercise.reps || '-' }}</span>
+            </div>
+            @if (exercise.weightKg) {
+              <div class="detail-item">
+                <span class="label">Peso:</span>
+                <span class="value">{{ exercise.weightKg }} kg</span>
+              </div>
+            }
+          </div>
+          @if (exercise.notes) {
+            <div class="exercise-notes">
+              <p>{{ exercise.notes }}</p>
+            </div>
+          }
+          <div class="exercise-actions">
+            <a [routerLink]="['/exercise', exercise.id]" class="btn-link">📊 Progressi</a>
+            <button class="btn-edit" (click)="editExercise(exercise)">✏️ Modifica</button>
+            <button class="btn-delete" (click)="deleteExercise(exercise.id)">🗑️ Elimina</button>
+          </div>
+        </div>
+      }
+      @if (exercises.length === 0) {
+        <div class="empty-state">
+          <p>Nessun esercizio ancora. Crea il tuo primo esercizio!</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+

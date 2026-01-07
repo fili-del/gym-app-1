@@ -1,0 +1,96 @@
+<div class="session-creator-container">
+  <div class="header-section">
+    <h1>🏋️ Nuova Sessione di Allenamento</h1>
+    <button class="btn-secondary" (click)="cancel()">❌ Annulla</button>
+  </div>
+
+  <div class="session-info">
+    <div class="info-item">
+      <label>Durata (minuti)</label>
+      <input type="number" [(ngModel)]="durationMinutes" min="0" placeholder="0" />
+    </div>
+  </div>
+
+  <div class="controls-section">
+    <button class="btn-primary" (click)="addExercise()">
+      ➕ Aggiungi Esercizio
+    </button>
+  </div>
+
+  @if (entries.length === 0) {
+    <div class="empty-state">
+      <p>Nessun esercizio aggiunto. Premi "Aggiungi Esercizio" per iniziare.</p>
+    </div>
+  }
+
+  <div class="entries-container">
+    @for (entry of entries; track $index; let i = $index) {
+      <div class="entry-card">
+        <div class="entry-header">
+          <div class="exercise-select-wrapper">
+            <label>Esercizio</label>
+            <select [(ngModel)]="entry.exerciseId" (ngModelChange)="onExerciseChange(entry)"
+                    class="exercise-select">
+              @for (ex of exercises; track ex.id) {
+                <option [value]="ex.id">{{ ex.name }}</option>
+              }
+            </select>
+          </div>
+          <button class="btn-icon" (click)="removeEntry(i)" title="Rimuovi esercizio">
+            🗑️
+          </button>
+        </div>
+
+        <div class="sets-container">
+          <div class="sets-header">
+            <h3>Serie</h3>
+            <button class="btn-small" (click)="addSet(entry)">➕ Aggiungi Serie</button>
+          </div>
+
+          <div class="sets-list">
+            @for (set of entry.sets; track $index; let setIndex = $index) {
+              <div class="set-row">
+                <div class="set-number">Serie {{ setIndex + 1 }}</div>
+                <div class="set-inputs">
+                  <div class="input-group">
+                    <label>Ripetizioni</label>
+                    <input type="number" [(ngModel)]="set.reps" min="1" 
+                           [name]="'reps-' + i + '-' + setIndex" />
+                  </div>
+                  <div class="input-group">
+                    <label>Peso (kg)</label>
+                    <input type="number" [(ngModel)]="set.weightKg" step="0.5" min="0"
+                           [name]="'weight-' + i + '-' + setIndex" />
+                  </div>
+                </div>
+                <button class="btn-icon-small" (click)="removeSet(entry, setIndex)"
+                        [disabled]="entry.sets.length === 1" title="Rimuovi serie">
+                  🗑️
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="entry-notes">
+          <label>Note esercizio</label>
+          <textarea [(ngModel)]="entry.notes" 
+                    [name]="'notes-' + i"
+                    placeholder="Note per questo esercizio..."></textarea>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="session-notes">
+    <label>Note Sessione</label>
+    <textarea [(ngModel)]="notes" name="sessionNotes"
+              placeholder="Note generali sulla sessione..."></textarea>
+  </div>
+
+  <div class="actions-section">
+    <button class="btn-success btn-large" (click)="save()">
+      💾 Salva Sessione
+    </button>
+  </div>
+</div>

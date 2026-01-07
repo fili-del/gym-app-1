@@ -1,0 +1,120 @@
+<div class="exercise-detail-container">
+  <div class="header-section">
+    <div>
+      <a routerLink="/" class="back-link">← Torna agli esercizi</a>
+      <h1>{{ name }}</h1>
+      @if (muscleGroup) {
+        <span class="muscle-badge">{{ muscleGroup }}</span>
+      }
+    </div>
+  </div>
+
+  @if (data.length === 0) {
+    <div class="empty-state">
+      <p>Nessun dato storico per questo esercizio.</p>
+      <p>Inizia ad allenarti per vedere i tuoi progressi!</p>
+      <a routerLink="/session/new" class="btn-primary">Crea Sessione</a>
+    </div>
+  }
+
+  @if (data.length > 0) {
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-label">Sessioni totali</div>
+          <div class="stat-value">{{ data.length }}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💪</div>
+        <div class="stat-content">
+          <div class="stat-label">Peso massimo</div>
+          <div class="stat-value">
+            @if (getMaxWeightFromAll()) {
+              {{ getMaxWeightFromAll() }} kg
+            } @else {
+              -
+            }
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <div class="stat-label">Volume totale</div>
+          <div class="stat-value">
+            {{ getTotalVolumeAllSessions() }} kg
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-section">
+      <div class="chart-card">
+        <h2>Ripetizioni Medie</h2>
+        <div class="chart-container">
+          <canvas #chartReps></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>Peso Medio</h2>
+        <div class="chart-container">
+          <canvas #chartWeight></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>Volume Totale per Sessione</h2>
+        <div class="chart-container">
+          <canvas #chartVolume></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <h2>Dettaglio Sessioni</h2>
+      <div class="sessions-timeline">
+        @for (item of data; track item.date) {
+          <div class="timeline-item">
+            <div class="timeline-date">
+              <strong>{{ formatDate(item.date) }}</strong>
+            </div>
+            <div class="timeline-content">
+              <div class="session-sets">
+                @for (set of item.sets; track $index) {
+                  <div class="set-item">
+                    <span class="set-number">Serie {{ $index + 1 }}</span>
+                    <span class="set-details">
+                      {{ set.reps }}x
+                      @if (set.weightKg) {
+                        @ {{ set.weightKg }}kg
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+              <div class="session-summary">
+                <span class="summary-item">
+                  <strong>Serie:</strong> {{ item.sets.length }}
+                </span>
+                <span class="summary-item">
+                  <strong>Ripetizioni:</strong> {{ getTotalReps(item.sets) }}
+                </span>
+                <span class="summary-item">
+                  <strong>Volume:</strong> {{ getTotalVolume(item.sets) }} kg
+                </span>
+                @if (getMaxWeight(item.sets)) {
+                  <span class="summary-item">
+                    <strong>Max:</strong> {{ getMaxWeight(item.sets) }} kg
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

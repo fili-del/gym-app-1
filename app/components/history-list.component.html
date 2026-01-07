@@ -1,0 +1,213 @@
+<div class="history-container">
+  <div class="header-section">
+    <h1>📅 Storico Allenamenti</h1>
+    <a routerLink="/session/new" class="btn-primary">➕ Nuova Sessione</a>
+  </div>
+
+  @if (sessions.length === 0) {
+    <div class="empty-state">
+      <p>Nessuna sessione ancora registrata.</p>
+      <p>Inizia creando la tua prima sessione di allenamento!</p>
+      <a routerLink="/session/new" class="btn-primary">Crea Prima Sessione</a>
+    </div>
+  }
+
+  @if (sessions.length > 0) {
+    <div class="sessions-list">
+      @for (session of sessions; track session.id) {
+        <div class="session-card">
+          <div class="session-header">
+            <div class="session-date">
+              <h2>{{ formatDate(session.date) }}</h2>
+            </div>
+            <div class="session-header-actions">
+              @if (session.durationMinutes) {
+                <div class="session-duration">
+                  ⏱️ {{ session.durationMinutes }} min
+                </div>
+              }
+              <button class="btn-edit-icon" (click)="openEditModal(session)" 
+                      title="Modifica sessione" aria-label="Modifica sessione">
+                ✏️
+              </button>
+              <button class="btn-delete-icon" (click)="openDeleteModal(session)" 
+                      title="Elimina sessione" aria-label="Elimina sessione">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div class="session-stats">
+            <div class="stat-item">
+              <span class="stat-label">Esercizi</span>
+              <span class="stat-value">{{ session.entries.length }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Serie Totali</span>
+              <span class="stat-value">{{ getTotalSets(session) }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Volume (kg)</span>
+              <span class="stat-value">{{ getTotalVolume(session) }}</span>
+            </div>
+          </div>
+
+          <div class="session-entries">
+            @for (entry of session.entries; track entry.exerciseId) {
+              <div class="entry-item">
+                <div class="entry-header">
+                  <a [routerLink]="['/exercise', entry.exerciseId]" class="exercise-link">
+                    <h3>{{ entry.name }}</h3>
+                  </a>
+                  @if (entry.muscleGroup) {
+                    <span class="muscle-badge">{{ entry.muscleGroup }}</span>
+                  }
+                </div>
+                <div class="sets-display">
+                  @for (set of entry.sets; track $index) {
+                    <div class="set-badge">
+                      <span class="set-reps">{{ set.reps }}x</span>
+                      @if (set.weightKg) {
+                        <span class="set-weight">{{ set.weightKg }}kg</span>
+                      } @else {
+                        <span class="set-weight">-</span>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (entry.notes) {
+                  <div class="entry-notes">
+                    <p>{{ entry.notes }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (session.notes) {
+            <div class="session-notes">
+              <strong>Note sessione:</strong>
+              <p>{{ session.notes }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Edit Session Modal -->
+  @if (showEditModal && editedSession) {
+    <div class="modal-overlay" (click)="cancelEdit()">
+      <div class="modal-content edit-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Modifica Sessione</h3>
+          <button class="modal-close" (click)="cancelEdit()" aria-label="Chiudi">×</button>
+        </div>
+        <div class="modal-body edit-modal-body">
+          <div class="form-group">
+            <label>Durata (minuti)</label>
+            <input type="number" [(ngModel)]="editedSession.durationMinutes" min="0" 
+                   name="durationMinutes" />
+          </div>
+
+          <div class="form-group">
+            <label>Note Sessione</label>
+            <textarea [(ngModel)]="editedSession.notes" name="sessionNotes"
+                      placeholder="Note generali sulla sessione..."></textarea>
+          </div>
+
+          <div class="entries-section">
+            <div class="section-header">
+              <h4>Esercizi</h4>
+              <button type="button" class="btn-small btn-primary" (click)="addExerciseToEdit()">
+                ➕ Aggiungi Esercizio
+              </button>
+            </div>
+
+            @for (entry of editedSession.entries; track $index; let i = $index) {
+              <div class="edit-entry-card">
+                <div class="entry-header-edit">
+                  <div class="form-group">
+                    <label>Esercizio</label>
+                    <select [(ngModel)]="entry.exerciseId" (ngModelChange)="onExerciseChange(entry)"
+                            [name]="'exercise-' + i" class="exercise-select">
+                      @for (ex of exercises; track ex.id) {
+                        <option [value]="ex.id">{{ ex.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <button type="button" class="btn-icon-small" (click)="removeEntryFromEdit(i)"
+                          title="Rimuovi esercizio">🗑️</button>
+                </div>
+
+                <div class="sets-section">
+                  <div class="sets-header">
+                    <h5>Serie</h5>
+                    <button type="button" class="btn-small" (click)="addSetToEntry(entry)">
+                      ➕ Aggiungi Serie
+                    </button>
+                  </div>
+                  <div class="sets-list-edit">
+                    @for (set of entry.sets; track $index; let setIndex = $index) {
+                      <div class="set-row-edit">
+                        <span class="set-number">Serie {{ setIndex + 1 }}</span>
+                        <div class="set-inputs">
+                          <div class="input-group">
+                            <label>Ripetizioni</label>
+                            <input type="number" [(ngModel)]="set.reps" min="1"
+                                   [name]="'reps-' + i + '-' + setIndex" />
+                          </div>
+                          <div class="input-group">
+                            <label>Peso (kg)</label>
+                            <input type="number" [(ngModel)]="set.weightKg" step="0.5" min="0"
+                                   [name]="'weight-' + i + '-' + setIndex" />
+                          </div>
+                        </div>
+                        <button type="button" class="btn-icon-small" 
+                                (click)="removeSetFromEntry(entry, setIndex)"
+                                [disabled]="entry.sets.length === 1" title="Rimuovi serie">
+                          🗑️
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Note esercizio</label>
+                  <textarea [(ngModel)]="entry.notes" [name]="'notes-' + i"
+                            placeholder="Note per questo esercizio..."></textarea>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="cancelEdit()">Annulla</button>
+          <button class="btn-success" (click)="saveEdit()">💾 Salva Modifiche</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal && sessionToDelete) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Conferma Eliminazione</h3>
+          <button class="modal-close" (click)="closeDeleteModal()" aria-label="Chiudi">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Sei sicuro di voler eliminare questa sessione di allenamento?</p>
+          <p class="modal-date">{{ formatDate(sessionToDelete.date) }}</p>
+          <p class="modal-warning">Questa azione non può essere annullata.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeDeleteModal()">Annulla</button>
+          <button class="btn-delete" (click)="confirmDelete()">Elimina</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
